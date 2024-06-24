@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Faucet</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://hcaptcha.com/1/api.js" async defer></script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=XXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'XXX');
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Solana Faucet</h1>
+    <form id="transferForm">
+      <label for="toPublicKey">To Public Key:</label>
+      <input type="text" id="toPublicKey" name="toPublicKey" required>
+      
+      <!-- hCaptcha widget -->
+      <div class="h-captcha" data-sitekey="XXX"></div>
+      
+      <button type="submit">Transfer</button>
+    </form>
+    <p id="loading">Processing transfer...</p>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const toPublicKey = document.getElementById('toPublicKey').value;
+      const token = document.querySelector('.h-captcha [name="h-captcha-response"]').value;
+
+      if (!token) {
+        document.getElementById('result').textContent = 'Please complete the hCaptcha.';
+        document.getElementById('result').style.color = 'red';
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('result').textContent = '';
+
+      const response = await fetch('/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toPublicKey, token })
+      });
+
+      const result = await response.json();
+      document.getElementById('loading').style.display = 'none';
+      const resultElement = document.getElementById('result');
+
+      if (result.success) {
+        resultElement.textContent = `Transfer successful! Transaction signature: ${result.signature}`;
+        resultElement.style.color = 'green';
+      } else {
+        resultElement.textContent = `Transfer failed: ${result.error}`;
+        resultElement.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
